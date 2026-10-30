@@ -1,5 +1,7 @@
 # AgentGate
 
+[![tests](https://github.com/seshasrivallii-art/agentgate/actions/workflows/tests.yml/badge.svg)](https://github.com/seshasrivallii-art/agentgate/actions/workflows/tests.yml)
+
 A small security platform: one tool-using agent and an independent
 authorization gateway. **The model may propose an action; only trusted
 gateway code can authorize and execute it.**
