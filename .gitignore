@@ -1,0 +1,10 @@
+.env
+__pycache__/
+*.egg-info/
+.pytest_cache/
+evals/results/*.json
+
+.venv/
+venv/
+.pytest_cache/
+*.pyc

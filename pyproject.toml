@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "agentgate"
+version = "0.1.0"
+description = "An independent authorization gateway for a tool-using agent."
+requires-python = ">=3.11"
+dependencies = [
+  "fastapi>=0.110,<1",
+  "uvicorn[standard]>=0.29",
+  "mcp>=1.12,<2",
+  "httpx>=0.27",
+  "pydantic>=2.6,<3",
+  "PyJWT[crypto]>=2.8",
+  "psycopg[binary]>=3.1",
+  "psycopg-pool>=3.2",
+  "anyio>=4",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "cryptography>=42"]
+
+[tool.setuptools.packages.find]
+include = ["gateway*", "agent*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+  "stack: needs the running docker compose stack",
+]

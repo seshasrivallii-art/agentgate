@@ -1,0 +1,148 @@
+{
+  "realm": "agentgate",
+  "enabled": true,
+  "sslRequired": "none",
+  "accessTokenLifespan": 300,
+  "registrationAllowed": false,
+  "clients": [
+    {
+      "clientId": "support-agent",
+      "name": "support-agent (service account, synthetic)",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "support-agent-dev-secret",
+      "serviceAccountsEnabled": true,
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "protocolMappers": [
+        {
+          "name": "agentgate-audience",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.custom.audience": "agentgate",
+            "id.token.claim": "false",
+            "access.token.claim": "true",
+            "introspection.token.claim": "true"
+          }
+        }
+      ]
+    },
+    {
+      "clientId": "finance-agent",
+      "name": "finance-agent (service account, synthetic)",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "finance-agent-dev-secret",
+      "serviceAccountsEnabled": true,
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "protocolMappers": [
+        {
+          "name": "agentgate-audience",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.custom.audience": "agentgate",
+            "id.token.claim": "false",
+            "access.token.claim": "true",
+            "introspection.token.claim": "true"
+          }
+        }
+      ]
+    },
+    {
+      "clientId": "other-service",
+      "name": "other-service (service account, synthetic)",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "other-service-dev-secret",
+      "serviceAccountsEnabled": true,
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false
+    },
+    {
+      "clientId": "approval-cli",
+      "name": "Human approver login (dev)",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": true,
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": true,
+      "serviceAccountsEnabled": false,
+      "protocolMappers": [
+        {
+          "name": "agentgate-audience",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.custom.audience": "agentgate",
+            "id.token.claim": "false",
+            "access.token.claim": "true",
+            "introspection.token.claim": "true"
+          }
+        }
+      ]
+    }
+  ],
+  "users": [
+    {
+      "username": "alice",
+      "enabled": true,
+      "email": "alice@tenant-a.example.invalid",
+      "emailVerified": true,
+      "firstName": "Alice",
+      "lastName": "Approver",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "alice-dev-password",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "bob",
+      "enabled": true,
+      "email": "bob@tenant-b.example.invalid",
+      "emailVerified": true,
+      "firstName": "Bob",
+      "lastName": "Approver",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "bob-dev-password",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "service-account-support-agent",
+      "enabled": true,
+      "serviceAccountClientId": "support-agent"
+    },
+    {
+      "username": "service-account-finance-agent",
+      "enabled": true,
+      "serviceAccountClientId": "finance-agent"
+    },
+    {
+      "username": "service-account-other-service",
+      "enabled": true,
+      "serviceAccountClientId": "other-service"
+    }
+  ]
+}

@@ -1,0 +1,89 @@
+name: agentgate
+
+x-gateway-env: &gateway-env
+  DATABASE_URL: postgresql://agentgate_app:${APP_DB_PASSWORD:-change-me-app}@postgres:5432/agentgate
+  OPA_URL: http://opa:8181
+  OIDC_ISSUER: http://localhost:8080/realms/agentgate
+  OIDC_JWKS_URL: http://keycloak:8080/realms/agentgate/protocol/openid-connect/certs
+  TOKEN_AUDIENCE: agentgate
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: agentgate
+      POSTGRES_USER: ${POSTGRES_USER:-agentgate_admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change-me-admin}
+      APP_DB_PASSWORD: ${APP_DB_PASSWORD:-change-me-app}
+    volumes:
+      - ./db:/db:ro
+      - ./db/init.sh:/docker-entrypoint-initdb.d/00-init.sh:ro
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d agentgate"]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+    networks: [backend]          # no published port: the agent cannot reach it
+
+  opa:
+    image: openpolicyagent/opa:1.0.0
+    command: ["run", "--server", "--addr=0.0.0.0:8181", "--log-level=info", "/policies/authz.rego"]
+    volumes:
+      - ./policies:/policies:ro
+    networks: [backend]          # no published port
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.0
+    command: ["start-dev", "--import-realm"]
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${KC_ADMIN:-admin}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KC_ADMIN_PASSWORD:-admin}
+      KC_HOSTNAME: http://localhost:8080          # fixes the token issuer for host and containers
+      KC_HOSTNAME_BACKCHANNEL_DYNAMIC: "true"
+    volumes:
+      - ./keycloak:/opt/keycloak/data/import:ro
+    ports: ["127.0.0.1:8080:8080"]
+    networks: [edge]
+
+  gateway:
+    build: .
+    command: ["uvicorn", "gateway.app:app", "--host", "0.0.0.0", "--port", "8000"]
+    environment: *gateway-env
+    depends_on:
+      postgres: {condition: service_healthy}
+      opa: {condition: service_started}
+      keycloak: {condition: service_started}
+    ports: ["127.0.0.1:8000:8000"]
+    networks: [edge, backend]
+
+  worker:
+    build: .
+    command: ["python", "-m", "gateway.execution"]
+    environment: *gateway-env
+    depends_on:
+      postgres: {condition: service_healthy}
+      opa: {condition: service_started}
+    networks: [backend]
+
+  tests:
+    build: .
+    profiles: ["test"]
+    command: ["pytest", "-q", "tests"]
+    environment:
+      <<: *gateway-env
+      ADMIN_DATABASE_URL: postgresql://${POSTGRES_USER:-agentgate_admin}:${POSTGRES_PASSWORD:-change-me-admin}@postgres:5432/agentgate
+      KEYCLOAK_URL: http://keycloak:8080
+      GATEWAY_URL: http://gateway:8000
+    volumes:
+      - ./tests:/app/tests:ro
+    depends_on: [gateway]
+    networks: [edge, backend]
+
+networks:
+  edge: {}
+  backend:
+    internal: true
+
+volumes:
+  pgdata: {}
